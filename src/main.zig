@@ -2,27 +2,11 @@ const std = @import("std");
 const argsParser = @import("args");
 const build_options = @import("build_options");
 const builtin = @import("builtin");
+const session = @import("session.zig");
 
 pub fn main() !u8 {
     const argsAllocator = std.heap.page_allocator;
-    const options = argsParser.parseForCurrentProcess(struct {
-
-        help: bool = false,
-        address: ?[]const u8 = null,
-        port: ?u32 = 22,
-        @"bin-dir": ?[]const u8 = null,
-        @"profile-dir": ?[]const u8 = null,
-        @"cache-dir": ?[]const u8 = null,
-
-        pub const shorthands = .{
-            .h = "help",
-            .a = "address",
-            .p = "port",
-            .b = "bin-dir",
-            .d = "profile-dir",
-            .c = "cache-dir"
-        };
-    }, argsAllocator, .print) catch return 1;
+    const options = argsParser.parseForCurrentProcess(session.Options, argsAllocator, .print) catch return 1;
     defer options.deinit();
 
     if(options.options.help) {
@@ -48,5 +32,5 @@ pub fn main() !u8 {
         return 1;
     }
 
-    return 0;
+    return session.startSession(options.options);
 }
