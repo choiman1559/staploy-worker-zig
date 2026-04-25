@@ -2,7 +2,7 @@ const std = @import("std");
 const argsParser = @import("args");
 const build_options = @import("build_options");
 const builtin = @import("builtin");
-const session = @import("session.zig");
+const session = @import("./session/session.zig");
 
 pub fn main(init: std.process.Init) !u8 {
     const options = argsParser.parseForCurrentProcess(session.Options, init, .print) catch return 1;

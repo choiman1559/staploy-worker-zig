@@ -1,6 +1,6 @@
 pub const API_ROUTE_SCHEMA = "/api/{s}/{s}"; // INFO: Schema => /api/{version}/{connection_type}"
 pub const CONN_TYPE_ADMIN = "admin";
-pub const CONN_TYPE_NODE = "node";
+pub const CONN_TYPE_WORKER = "worker";
 pub const STATUS_ERROR = "error";
 pub const STATUS_OK = "ok";
 

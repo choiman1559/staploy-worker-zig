@@ -10,12 +10,24 @@
             .hash = "args-0.0.0-CiLiqmvgAADyJmrzcQTP9IOYNvTzR_KGrg3ZNNsH2Qv0",
         },
         .websocket = .{
-            .url = "git+https://github.com/karlseguin/websocket.zig?ref=master#3be6210f53297fb4b458d88562047ff4d69629a3",
-            .hash = "websocket-0.1.0-ZPISdUU6BAAPe0iZ_JHMVAXaBlz327xZRBrRY06-Vw5h",
+            .url = "git+https://github.com/karlseguin/websocket.zig?ref=master#d823a7d8cb3e43b3789208ae499bfe1d077de8ee",
+            .hash = "websocket-0.1.0-ZPISdUQ6BAAuDI1LbcOpeUAMHk5sIvvWmcSl1wFSFL62",
         },
         .protobuf = .{
             .url = "git+https://github.com/Arwalk/zig-protobuf?ref=master#1f6cb06156b3ff4f52f98bc14f829c0b8393a6fc",
             .hash = "protobuf-5.0.0-0e82avKUKAAVwTWJzTIEZ14Fu0zC11_lElR8tE6H__y1",
+        },
+        .@"uuid-zig" = .{
+            .url = "https://codeberg.org/r4gus/uuid-zig/archive/0.5.0.tar.gz",
+            .hash = "uuid-0.5.0-oOieIQx-AABtc9U3ihv_bf9pZAYoKp4UMsNFHBr-cn-w",
+        },
+        .uuid_zig = .{
+            .url = "git+https://codeberg.org/r4gus/uuid-zig?ref=master#3473041e2965ba23b975a4b767866fcf43e8041c",
+            .hash = "uuid-0.5.0-oOieIYB-AAAon001Vv2FdX7zPLraCojPHKeWHg_9Obm7",
+        },
+        .uuid = .{
+            .url = "git+https://codeberg.org/r4gus/uuid-zig?ref=master#3473041e2965ba23b975a4b767866fcf43e8041c",
+            .hash = "uuid-0.5.0-oOieIYB-AAAon001Vv2FdX7zPLraCojPHKeWHg_9Obm7",
         },
     },
     .paths = .{

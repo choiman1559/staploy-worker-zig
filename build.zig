@@ -19,10 +19,17 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{ .root_source_file = b.path("src/main.zig"), .target = target, .optimize = optimize, .imports = &.{} }),
     });
 
-    exe.root_module.addImport("args", b.dependency("args", .{ .target = target, .optimize = optimize }).module("args"));
-    exe.root_module.addImport("websocket", b.dependency("websocket", .{ .target = target, .optimize = optimize }).module("websocket"));
-    exe.root_module.addImport("protobuf", b.dependency("protobuf", .{ .target = target, .optimize = optimize }).module("protobuf"));
+    const Dep = struct { []const u8, []const u8 };
+    const deps: []const Dep = &.{
+        .{ "args", "args" },
+        .{ "websocket", "websocket" },
+        .{ "protobuf", "protobuf" },
+        .{ "uuid", "uuid" },
+    };
 
+    for (deps) |dep| {
+        exe.root_module.addImport(dep[0], b.dependency(dep[1], .{ .target = target, .optimize = optimize }).module(dep[1]));
+    }
     exe.root_module.addOptions("build_options", options);
     b.installArtifact(exe);
 

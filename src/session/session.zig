@@ -1,8 +1,12 @@
 const std = @import("std");
 const ws = @import("websocket");
-const serviceConst = @import("service_const.zig");
+
+const processPacket = @import("../session/process_packet.zig");
+const serviceConst = @import("../utils/service_const.zig");
 
 pub var globalOptions: Options = .{};
+pub var isConnected = false;
+
 pub const Options = struct {
     help: bool = false,
     address: []const u8 = "127.0.0.1",
@@ -14,8 +18,9 @@ pub const Options = struct {
     pub const shorthands = .{ .h = "help", .a = "address", .p = "port", .b = "bin-dir", .d = "profile-dir", .c = "cache-dir" };
 };
 
-const Handler = struct {
+pub const Handler = struct {
     client: ws.Client,
+    processInit: std.process.Init,
 
     fn init(processInit: std.process.Init) !Handler {
         var client = try ws.Client.init(processInit.io, processInit.arena.allocator(), .{
@@ -24,7 +29,7 @@ const Handler = struct {
             .tls = false,
         });
 
-        const request_path = try std.fmt.allocPrint(processInit.arena.allocator(), serviceConst.API_ROUTE_SCHEMA, .{ "v1", serviceConst.CONN_TYPE_NODE });
+        const request_path = try std.fmt.allocPrint(processInit.arena.allocator(), serviceConst.API_ROUTE_SCHEMA, .{ "v1", serviceConst.CONN_TYPE_WORKER });
         std.debug.print("REQ => {s}:{d}{s}\n", .{globalOptions.address, globalOptions.port, request_path});
         try client.handshake(request_path, .{
             .timeout_ms = 30000,
@@ -33,6 +38,7 @@ const Handler = struct {
 
         return .{
             .client = client,
+            .processInit = processInit,
         };
     }
 
@@ -42,7 +48,8 @@ const Handler = struct {
 
     pub fn serverMessage(self: *Handler, data: []u8) !void {
         std.debug.print("incomming packet: {s}", .{data});
-        return self.client.write(data);
+        try processPacket.packetProcess(self.processInit, self, data);
+        return;
     }
 
     pub fn close(self: *Handler) void {
