@@ -32,15 +32,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const proto_files = getProtoFiles(b.allocator, "protobuf");
+    const proto_files = getProtoFiles(b.allocator, b, "protobuf") catch unreachable;
     const protoc_step = protobuf.RunProtocStep.create(protobuf_dep.builder, target, .{
         .destination_directory = b.path("src/protobuf"),
-        .source_files = proto_files catch |err| {
-            std.debug.print("Failed to get proto files: {}\n", .{err});
-            std.process.exit(1);
-        },
-        .include_directories = &.{"protobuf"},
+        .source_files = proto_files,
+        .include_directories = &.{b.path("protobuf")},
     });
+
     gen_proto.dependOn(&protoc_step.step);
 
     const run_step = b.step("run", "Run the app");
@@ -54,20 +52,21 @@ pub fn build(b: *std.Build) void {
     }
 }
 
-fn getProtoFiles(allocator: std.mem.Allocator, directory: []const u8) ![]const []const u8 {
-    var file_list: std.ArrayList([]const u8) = .empty;
+fn getProtoFiles(allocator: std.mem.Allocator, b: *std.Build, directory: []const u8) ![]std.Build.LazyPath {
+    var file_list: std.ArrayList(std.Build.LazyPath) = .empty;
     defer file_list.deinit(allocator);
 
-    var dir = try std.fs.cwd().openDir(directory, .{ .iterate = true });
-    defer dir.close();
+    var io = std.Io.Threaded.init(allocator, .{});
+    var dir = try std.Io.Dir.cwd().openDir(io.io(), directory, .{ .iterate = true });
+    defer dir.close(io.io());
 
     var walker = try dir.walk(allocator);
     defer walker.deinit();
 
-    while (try walker.next()) |entry| {
+    while (try walker.next(io.io())) |entry| {
         if (entry.kind == .file and std.mem.endsWith(u8, entry.basename, ".proto")) {
             const full_path = try std.fs.path.join(allocator, &.{ directory, entry.path });
-            try file_list.append(allocator, full_path);
+            try file_list.append(allocator, b.path(full_path));
         }
     }
     return file_list.toOwnedSlice(allocator);

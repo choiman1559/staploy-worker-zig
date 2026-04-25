@@ -4,9 +4,8 @@ const build_options = @import("build_options");
 const builtin = @import("builtin");
 const session = @import("session.zig");
 
-pub fn main() !u8 {
-    const argsAllocator = std.heap.page_allocator;
-    const options = argsParser.parseForCurrentProcess(session.Options, argsAllocator, .print) catch return 1;
+pub fn main(init: std.process.Init) !u8 {
+    const options = argsParser.parseForCurrentProcess(session.Options, init, .print) catch return 1;
     defer options.deinit();
 
     if(options.options.help) {
@@ -16,7 +15,7 @@ pub fn main() !u8 {
     }
 
     if(options.options.@"bin-dir") |bin_dir| {
-        var dir = std.fs.cwd().openDir(bin_dir, .{}) catch |err| {
+        var dir = std.Io.Dir.cwd().openDir(init.io, bin_dir, .{}) catch |err| {
             if (err == error.FileNotFound) {
                 std.log.err("Specified path not exists, Abort.\n", .{});
             } else if (err == error.AccessDenied) {
@@ -26,11 +25,11 @@ pub fn main() !u8 {
             }
             return 1;
         };
-        defer dir.close();
+        defer dir.close(init.io);
     } else {
         std.log.err("Binary path not specified, Abort.\n", .{});
         return 1;
     }
 
-    return session.startSession(options.options);
+    return session.startSession(init, options.options);
 }

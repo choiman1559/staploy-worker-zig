@@ -17,14 +17,14 @@ pub const Options = struct {
 const Handler = struct {
     client: ws.Client,
 
-    fn init(allocator: std.mem.Allocator) !Handler {
-        var client = try ws.Client.init(allocator, .{
+    fn init(processInit: std.process.Init) !Handler {
+        var client = try ws.Client.init(processInit.io, processInit.arena.allocator(), .{
             .port = globalOptions.port,
             .host = globalOptions.address,
             .tls = false,
         });
 
-        const request_path = try std.fmt.allocPrint(allocator, serviceConst.API_ROUTE_SCHEMA, .{ "v1", serviceConst.CONN_TYPE_NODE });
+        const request_path = try std.fmt.allocPrint(processInit.arena.allocator(), serviceConst.API_ROUTE_SCHEMA, .{ "v1", serviceConst.CONN_TYPE_NODE });
         std.debug.print("REQ => {s}:{d}{s}\n", .{globalOptions.address, globalOptions.port, request_path});
         try client.handshake(request_path, .{
             .timeout_ms = 30000,
@@ -51,13 +51,9 @@ const Handler = struct {
     }
 };
 
-pub fn startSession(options: Options) !u8 {
-    var arena: std.heap.ArenaAllocator = .init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
+pub fn startSession(init: std.process.Init, options: Options) !u8 {
     globalOptions = options;
-    var sessionHandler = try Handler.init(allocator);
+    var sessionHandler = try Handler.init(init);
     sessionHandler.startLoop() catch |err| {
         std.log.err("error while connecting websocket => {}", .{err});
         return 1;
