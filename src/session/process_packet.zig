@@ -7,7 +7,8 @@ const workerInfo = @import("../utils/worker_info.zig");
 
 pub fn packetProcess(init: std.process.Init, wsSession: *session.Handler, data: []u8) !void {
     var buf_reader = std.Io.Reader.fixed(data);
-    const incomingPacket = try protocol.ServerPacket.decode(&buf_reader, init.arena.allocator());
+    var incomingPacket = try protocol.ServerPacket.decode(&buf_reader, init.arena.allocator());
+    defer incomingPacket.deinit(init.arena.allocator());
     try routePacket(init,wsSession, incomingPacket);
 }
 
@@ -15,7 +16,6 @@ fn routePacket(init: std.process.Init, wsSession: *session.Handler, incomingPack
     if(incomingPacket.packetInfo) |dataPacket|{
         switch (dataPacket.procedure) {
             protocol.ProtocolProcedure.PROCEDURE_SERVER_HELLO => {
-                session.isConnected = true;
                 std.debug.print("Connected to server, responding WorkerInfo...", .{});
                 try replyWorkerData(init, wsSession, incomingPacket);
             },
@@ -41,6 +41,11 @@ fn replyWorkerData(init: std.process.Init, wsSession: *session.Handler, incoming
         requireDetailInfo = switch (actionType) {
             protocol.ActionProcedure.PROCEDURE_NONE => false,
             protocol.ActionProcedure.PROCEDURE_REQUEST_WORKER_INFO => true,
+            protocol.ActionProcedure.PROCEDURE_ACK => {
+                std.debug.print("Server handshake done!", .{});
+                session.isConnected = true;
+                return;
+            },
             else => false
         };
     }
@@ -57,6 +62,7 @@ fn replyWorkerData(init: std.process.Init, wsSession: *session.Handler, incoming
     var w = std.Io.Writer.Allocating.init(init.arena.allocator());
     defer w.deinit();
     try responsePacket.encode(&w.writer, init.arena.allocator());
+    std.debug.print("{s}", .{try responsePacket.jsonEncode(.{.whitespace = .indent_3 }, .{}, init.arena.allocator())});
 
     const result: []u8 = w.written();
     try wsSession.client.write(result);

@@ -8,6 +8,7 @@ const protocol = @import("../protobuf/com/staploy.pb.zig");
 pub fn createDefaultWorkerInfo(io: std.Io, requireDetail: bool) protocol.WorkerInfo {
     var workerInfo: protocol.WorkerInfo = protocol.WorkerInfo {
         .workerId = getWorkerUniqueId(io),
+        .workerName = "testBuild" //TODO
     };
 
     if(requireDetail) {
@@ -19,8 +20,9 @@ pub fn createDefaultWorkerInfo(io: std.Io, requireDetail: bool) protocol.WorkerI
     return workerInfo;
 }
 
-pub fn getWorkerUniqueId(io: std.Io) []const u8 {
-    return &uuid.urn.serialize(uuid.v4.new(io));
+pub fn getWorkerUniqueId(_: std.Io) []const u8 {
+    return "test-uid-zig";
+    //return &uuid.urn.serialize(uuid.v4.new(io));
 }
 
 pub fn getTotalMemorySizeInBytes() ?i64 {

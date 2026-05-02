@@ -47,7 +47,7 @@ pub const Handler = struct {
     }
 
     pub fn serverMessage(self: *Handler, data: []u8) !void {
-        std.debug.print("incomming packet: {s}", .{data});
+        std.debug.print("incomming packet: {s}\n", .{data});
         try processPacket.packetProcess(self.processInit, self, data);
         return;
     }
